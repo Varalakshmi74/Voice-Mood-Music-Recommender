@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTune AI 🎧 | Voice Mood Music Recommender</title>
+  <meta name="description" content="Speak your mood. Let AI analyze your voice, speech, and sentiment to recommend the perfect music playlist in real-time. Built for Text & Speech Analysis.">
+  <meta name="theme-color" content="#090a16">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Canvas Confetti for Happy / Celebratory Moods -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-cyberpunk">
+
+  <!-- Ambient Glow Canvas & Particle Constellation -->
+  <canvas id="particleCanvas" class="particle-canvas" aria-hidden="true"></canvas>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Main App Shell -->
+  <div class="app-container">
+
+    <!-- ==================== SIDEBAR NAVIGATION ==================== -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <div class="logo-icon-wrapper">
+            <i data-lucide="headphones" class="brand-icon"></i>
+            <span class="logo-pulse"></span>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">MoodTune<span class="gradient-text">.AI</span></span>
+            <span class="brand-sub">Neural Audio Engine</span>
+          </div>
+        </div>
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close Sidebar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="nav-section-label">MENU</div>
+      <nav class="sidebar-nav">
+        <a href="#hero" class="nav-item active" data-nav="hero">
+          <i data-lucide="home" class="nav-icon"></i>
+          <span class="nav-label">Home</span>
+          <span class="nav-indicator"></span>
+        </a>
+        <a href="#voice-section" class="nav-item" data-nav="voice-section">
+          <i data-lucide="mic" class="nav-icon"></i>
+          <span class="nav-label">Voice Analysis</span>
+          <span class="nav-badge">Live</span>
+        </a>
+        <a href="#text-section" class="nav-item" data-nav="text-section">
+          <i data-lucide="file-text" class="nav-icon"></i>
+          <span class="nav-label">Text Sentiment</span>
+        </a>
+        <a href="#recommendations-section" class="nav-item" data-nav="recommendations-section">
+          <i data-lucide="music" class="nav-icon"></i>
+          <span class="nav-label">Recommendations</span>
+          <span class="nav-badge-count" id="recBadgeCount">6</span>
+        </a>
+        <a href="#analytics-section" class="nav-item" data-nav="analytics-section">
+          <i data-lucide="bar-chart-3" class="nav-icon"></i>
+          <span class="nav-label">Mood Analytics</span>
+        </a>
+        <a href="#history-section" class="nav-item" data-nav="history-section">
+          <i data-lucide="clock" class="nav-icon"></i>
+          <span class="nav-label">History</span>
+        </a>
+        <a href="#settings-section" class="nav-item" data-nav="settings-section">
+          <i data-lucide="sliders" class="nav-icon"></i>
+          <span class="nav-label">Settings</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Mini Project Info Card -->
+      <div class="sidebar-footer-card glass-card">
+        <div class="project-tag">
+          <i data-lucide="cpu" class="tag-icon"></i>
+          <span>Academic Project</span>
+        </div>
+        <p class="project-title">Text & Speech Analysis</p>
+        <div class="engine-status">
+          <span class="status-dot online"></span>
+          <span>Web Audio & NLP Online</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <div class="main-wrapper">
+
+      <!-- Top Header / App Bar -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Toggle navigation">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="search-box glass-pill">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="globalSearchInput" placeholder="Search songs, moods, artists..." autocomplete="off">
+            <kbd class="search-shortcut">⌘K</kbd>
+          </div>
+        </div>
+
+        <div class="header-center">
+          <div class="live-ai-chip">
+            <span class="pulse-indicator"></span>
+            <span class="ai-chip-text">Emotion AI Model v2.4 Active</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Quick Mood Selector Dropdown -->
+          <div class="mood-quick-switch dropdown-wrap">
+            <button class="header-icon-btn glass-btn" id="quickMoodBtn" title="Instant Mood Preview">
+              <span id="headerMoodEmoji">😊</span>
+              <span class="btn-text-sm" id="headerMoodText">Happy</span>
+              <i data-lucide="chevron-down" class="icon-sm"></i>
+            </button>
+            <div class="dropdown-menu glass-card" id="quickMoodMenu">
+              <div class="dropdown-header">Simulate Mood State</div>
+              <button class="quick-mood-item" data-mood="HAPPY">😊 Happy (Energetic / Joy)</button>
+              <button class="quick-mood-item" data-mood="SAD">😢 Sad (Comfort / Healing)</button>
+              <button class="quick-mood-item" data-mood="CALM">😌 Calm (Peaceful / Lo-fi)</button>
+              <button class="quick-mood-item" data-mood="ENERGETIC">⚡ Energetic (Workout / EDM)</button>
+              <button class="quick-mood-item" data-mood="STRESSED">🧘 Stressed (Relax / Ambient)</button>
+              <button class="quick-mood-item" data-mood="ANGRY">😡 Angry (Rock / Cathartic)</button>
+              <button class="quick-mood-item" data-mood="ROMANTIC">💕 Romantic (Soulful / Love)</button>
+            </div>
+          </div>
+
+          <!-- Notification Bell -->
+          <div class="notifications-wrap dropdown-wrap">
+            <button class="header-icon-btn glass-btn" id="notifBtn" aria-label="Notifications">
+              <i data-lucide="bell"></i>
+              <span class="notif-badge">3</span>
+            </button>
+            <div class="dropdown-menu notifications-menu glass-card" id="notifMenu">
+              <div class="dropdown-header flex-between">
+                <span>System Notifications</span>
+                <span class="badge-tag">3 New</span>
+              </div>
+              <div class="notif-list">
+                <div class="notif-item unread">
+                  <div class="notif-icon-box happy"><i data-lucide="smile"></i></div>
+                  <div class="notif-content">
+                    <p class="notif-title">High Energy Detected</p>
+                    <span class="notif-time">2 mins ago • Happy Playlist Ready</span>
+                  </div>
+                </div>
+                <div class="notif-item">
+                  <div class="notif-icon-box info"><i data-lucide="sparkles"></i></div>
+                  <div class="notif-content">
+                    <p class="notif-title">Speech-to-Text Model Ready</p>
+                    <span class="notif-time">10 mins ago • Web Speech API connected</span>
+                  </div>
+                </div>
+                <div class="notif-item">
+                  <div class="notif-icon-box music"><i data-lucide="headphones"></i></div>
+                  <div class="notif-content">
+                    <p class="notif-title">Daily Mood Score Updated</p>
+                    <span class="notif-time">1 hour ago • 87% Confidence</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Profile -->
+          <div class="user-profile-pill glass-pill">
+            <div class="avatar-ring">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Alex Rivera Avatar" class="user-avatar">
+              <span class="avatar-status-dot"></span>
+            </div>
+            <div class="user-info-text">
+              <span class="user-name">Alex Rivera</span>
+              <span class="user-role">Student Presenter</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Scrollable Main Body Content -->
+      <main class="main-content" id="mainContent">
+
+        <!-- ==================== HERO SECTION ==================== -->
+        <section class="hero-section" id="hero">
+          <div class="hero-grid">
+            <div class="hero-content">
+              <div class="hero-badge glass-pill">
+                <i data-lucide="sparkles" class="badge-icon"></i>
+                <span>Next-Gen Audio Emotion Intelligence</span>
+              </div>
+              <h1 class="hero-title">
+                Your Voice <span class="gradient-text-hero">Knows Your Mood.</span>
+              </h1>
+              <p class="hero-subtitle">
+                Talk naturally and let AI understand your emotional frequencies, sentiment, and tone to generate the perfect synchronized soundtrack for your soul.
+              </p>
+
+              <!-- Hero CTAs -->
+              <div class="hero-actions">
+                <a href="#voice-section" class="btn-primary glow-button" id="heroVoiceBtn">
+                  <i data-lucide="mic" class="btn-icon"></i>
+                  <span>Analyze My Voice</span>
+                  <div class="btn-glow-layer"></div>
+                </a>
+                <button class="btn-secondary glass-btn" id="heroUploadTriggerBtn">
+                  <i data-lucide="upload-cloud" class="btn-icon"></i>
+                  <span>Upload Audio File</span>
+                </button>
+                <a href="#text-section" class="btn-ghost glass-btn">
+                  <i data-lucide="keyboard" class="btn-icon"></i>
+                  <span>Text Mode</span>
+                </a>
+              </div>
+
+              <!-- Tech Highlights Strip -->
+              <div class="hero-tech-strip">
+                <div class="tech-item">
+                  <i data-lucide="activity" class="tech-icon"></i>
+                  <div>
+                    <span class="tech-val">0.4s</span>
+                    <span class="tech-lbl">Prosody Latency</span>
+                  </div>
+                </div>
+                <div class="tech-divider"></div>
+                <div class="tech-item">
+                  <i data-lucide="brain-circuit" class="tech-icon"></i>
+                  <div>
+                    <span class="tech-val">7 Moods</span>
+                    <span class="tech-lbl">Acoustic Mapping</span>
+                  </div>
+                </div>
+                <div class="tech-divider"></div>
+                <div class="tech-item">
+                  <i data-lucide="music-2" class="tech-icon"></i>
+                  <div>
+                    <span class="tech-val">50+ Songs</span>
+                    <span class="tech-lbl">Curated Library</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Floating 3D/Canvas AI Orb Centerpiece -->
+            <div class="hero-visual">
+              <div class="orb-container">
+                <div class="orb-backdrop-glow"></div>
+                
+                <!-- AI Orb Interactive Sphere -->
+                <div class="ai-orb-wrapper" id="aiOrbWrapper">
+                  <div class="ai-orb-core" id="aiOrbCore">
+                    <div class="orb-layer orb-l1"></div>
+                    <div class="orb-layer orb-l2"></div>
+                    <div class="orb-layer orb-l3"></div>
+                    <div class="orb-inner-wave"></div>
+                  </div>
+                  <!-- Floating Particle Rings -->
+                  <div class="orb-ring ring-1"></div>
+                  <div class="orb-ring ring-2"></div>
+                  <div class="orb-ring ring-3"></div>
+
+                  <!-- Floating Status Badges around Orb -->
+                  <div class="floating-data-card card-top glass-card float-anim-1">
+                    <div class="status-indicator-dot green"></div>
+                    <span>Pitch & Cadence: Active</span>
+                  </div>
+                  <div class="floating-data-card card-bottom-right glass-card float-anim-2">
+                    <i data-lucide="headphones" class="icon-xs text-neon-pink"></i>
+                    <span>Harmonic Match: 98%</span>
+                  </div>
+                  <div class="floating-data-card card-bottom-left glass-card float-anim-3">
+                    <i data-lucide="waveform" class="icon-xs text-neon-cyan"></i>
+                    <span id="orbFrequencyText">142 Hz Fundamental</span>
+                  </div>
+                </div>
+
+                <div class="orb-caption">
+                  <span class="pulse-ring"></span>
+                  <span class="caption-text">AI Neural Emotion Core Listening</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VOICE ANALYSIS SECTION ==================== -->
+        <section class="section-container" id="voice-section">
+          <div class="section-header">
+            <div class="section-tag">
+              <i data-lucide="mic" class="tag-icon"></i>
+              <span>Speech & Acoustic Analysis</span>
+            </div>
+            <h2 class="section-title">Voice Emotion Detection Studio</h2>
+            <p class="section-desc">
+              Speak into your microphone or upload an audio sample. MoodTune AI processes real-time acoustic waveforms, lexical sentiment, and pitch variation.
+            </p>
+          </div>
+
+          <!-- Main Voice Analysis Glass Card -->
+          <div class="voice-studio-card glass-card">
+
+            <!-- Tab Switcher (Mic vs Upload) -->
+            <div class="studio-tabs">
+              <button class="studio-tab active" id="tabMicBtn" data-tab="mic">
+                <i data-lucide="mic"></i>
+                <span>Microphone Record</span>
+              </button>
+              <button class="studio-tab" id="tabUploadBtn" data-tab="upload">
+                <i data-lucide="upload"></i>
+                <span>Upload Audio File</span>
+              </button>
+              <button class="studio-tab" id="tabSampleAudioBtn" data-tab="samples">
+                <i data-lucide="volume-2"></i>
+                <span>Try Voice Samples</span>
+              </button>
+            </div>
+
+            <!-- TAB 1: Live Mic Recording -->
+            <div class="studio-tab-content active" id="tabContentMic">
+              <div class="mic-stage">
+                <!-- Visualizer Canvas -->
+                <div class="visualizer-container">
+                  <canvas id="voiceWaveCanvas" class="wave-canvas" width="800" height="180"></canvas>
+                  <div class="visualizer-overlay-info">
+                    <span class="vis-status" id="visStatusText">Ready to capture voice...</span>
+                    <span class="vis-timer" id="recordingTimer">00:00</span>
+                  </div>
+                </div>
+
+                <!-- Big Interactive Microphone Button -->
+                <div class="mic-button-zone">
+                  <div class="mic-pulse-ring ring-outer" id="micRingOuter"></div>
+                  <div class="mic-pulse-ring ring-middle" id="micRingMiddle"></div>
+                  <button class="big-mic-button" id="recordToggleBtn" aria-label="Toggle Recording">
+                    <i data-lucide="mic" id="micIcon" class="mic-icon-svg"></i>
+                    <i data-lucide="square" id="stopIcon" class="stop-icon-svg hide"></i>
+                  </button>
+                </div>
+
+                <!-- Mic Status & Prompts -->
+                <div class="mic-instructions">
+                  <h3 class="mic-prompt-title" id="micPromptTitle">"Tell us how you're feeling today..."</h3>
+                  <p class="mic-prompt-sub" id="micPromptSub">
+                    Click the glowing microphone button, speak naturally for 4-8 seconds, then hit Stop.
+                  </p>
+                </div>
+
+                <!-- Quick Prompt Inspiration Chips -->
+                <div class="prompt-chips-wrap">
+                  <span class="chips-label">Need inspiration? Try saying:</span>
+                  <div class="chips-list">
+                    <button class="prompt-chip" data-phrase="I just aced my final exam presentation and I feel totally on top of the world!">"🎉 I just aced my presentation!"</button>
+                    <button class="prompt-chip" data-phrase="I'm feeling really exhausted and overwhelmed with all these deadlines and stress.">"😫 Feeling overwhelmed & stressed"</button>
+                    <button class="prompt-chip" data-phrase="Sitting with a warm cup of coffee watching the rain, feeling deeply peaceful and relaxed.">"☕ Calm rain & peaceful coffee"</button>
+                    <button class="prompt-chip" data-phrase="I am so annoyed and frustrated that my code broke right before the demo!">"😡 Frustrated with broken code"</button>
+                  </div>
+                </div>
+
+                <!-- Audio Playback Preview (Hidden until recorded) -->
+                <div class="audio-playback-card glass-card hide" id="audioPlaybackCard">
+                  <div class="playback-header">
+                    <div class="playback-badge">
+                      <i data-lucide="check-circle" class="icon-xs text-neon-cyan"></i>
+                      <span>Voice Audio Captured</span>
+                    </div>
+                    <span class="playback-duration" id="playbackDurationText">00:05</span>
+                  </div>
+                  <div class="playback-controls">
+                    <button class="play-preview-btn" id="previewPlayBtn">
+                      <i data-lucide="play" id="previewPlayIcon"></i>
+                    </button>
+                    <div class="preview-progress-bar" id="previewProgressBarWrap">
+                      <div class="preview-progress-fill" id="previewProgressFill"></div>
+                    </div>
+                    <button class="rerecord-btn glass-btn" id="reRecordBtn" title="Record Again">
+                      <i data-lucide="rotate-ccw"></i>
+                      <span>Re-record</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Action Analyze Button -->
+                <div class="studio-actions">
+                  <button class="btn-primary analyze-cta-btn glow-button" id="analyzeVoiceBtn" disabled>
+                    <i data-lucide="sparkles"></i>
+                    <span>✨ Analyze My Mood & Voice</span>
+                    <div class="btn-glow-layer"></div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: Audio File Upload -->
+            <div class="studio-tab-content hide" id="tabContentUpload">
+              <div class="upload-dropzone" id="uploadDropzone">
+                <input type="file" id="audioFileInput" accept="audio/*,.mp3,.wav,.ogg,.m4a,.webm" class="file-input-hidden">
+                <div class="upload-icon-circle">
+                  <i data-lucide="upload-cloud" class="upload-icon-main"></i>
+                </div>
+                <h3 class="upload-title">Drag & Drop Voice Recording</h3>
+                <p class="upload-sub">Supports MP3, WAV, OGG, M4A, or WebM audio files (Max 25MB)</p>
+                <button class="btn-secondary glass-btn upload-browse-btn" id="browseFileBtn">
+                  <i data-lucide="folder-open"></i>
+                  <span>Browse Audio Files</span>
+                </button>
+                <div class="upload-file-status hide" id="uploadFileStatus">
+                  <i data-lucide="file-audio" class="icon-sm text-neon-pink"></i>
+                  <span id="uploadedFileName">voice_sample.wav</span>
+                  <span class="badge-tag" id="uploadedFileSize">1.2 MB</span>
+                  <button class="remove-file-btn" id="removeFileBtn" title="Remove file"><i data-lucide="x"></i></button>
+                </div>
+              </div>
+              <div class="studio-actions mt-4">
+                <button class="btn-primary analyze-cta-btn glow-button" id="analyzeUploadBtn" disabled>
+                  <i data-lucide="sparkles"></i>
+                  <span>✨ Analyze Uploaded Audio</span>
+                  <div class="btn-glow-layer"></div>
+                </button>
+              </div>
+            </div>
+
+            <!-- TAB 3: Pre-loaded Demo Voice Samples -->
+            <div class="studio-tab-content hide" id="tabContentSamples">
+              <div class="samples-grid">
+                <div class="sample-card glass-card" data-sample="happy">
+                  <div class="sample-icon-wrap happy">😊</div>
+                  <div class="sample-info">
+                    <h4>"Pure Joy & Excitement"</h4>
+                    <p>"I just got accepted into my dream internship program! Absolutely ecstatic!"</p>
+                    <span class="sample-tag">Tone: High Energy • Fast Tempo</span>
+                  </div>
+                  <button class="btn-sample-select glass-btn" data-sample-id="happy">Select Sample</button>
+                </div>
+
+                <div class="sample-card glass-card" data-sample="calm">
+                  <div class="sample-icon-wrap calm">😌</div>
+                  <div class="sample-info">
+                    <h4>"Serene Rainy Evening"</h4>
+                    <p>"Everything is so still and quiet tonight. Reading a good book and relaxing."</p>
+                    <span class="sample-tag">Tone: Low Pitch • Gentle Cadence</span>
+                  </div>
+                  <button class="btn-sample-select glass-btn" data-sample-id="calm">Select Sample</button>
+                </div>
+
+                <div class="sample-card glass-card" data-sample="stressed">
+                  <div class="sample-icon-wrap stressed">🧘</div>
+                  <div class="sample-info">
+                    <h4>"Exam & Deadline Pressure"</h4>
+                    <p>"I have three project submissions tomorrow and zero sleep. My mind is racing."</p>
+                    <span class="sample-tag">Tone: Rapid Pauses • Tense Prosody</span>
+                  </div>
+                  <button class="btn-sample-select glass-btn" data-sample-id="stressed">Select Sample</button>
+                </div>
+
+                <div class="sample-card glass-card" data-sample="energetic">
+                  <div class="sample-icon-wrap energetic">⚡</div>
+                  <div class="sample-info">
+                    <h4>"Gym Workout Motivation"</h4>
+                    <p>"Hitting a new personal record at the gym today, let's crush this workout session!"</p>
+                    <span class="sample-tag">Tone: High Volume • High Resonance</span>
+                  </div>
+                  <button class="btn-sample-select glass-btn" data-sample-id="energetic">Select Sample</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==================== AI PROCESSING SCANNING OVERLAY ==================== -->
+        <div class="ai-scan-modal" id="aiScanModal" aria-hidden="true">
+          <div class="ai-scan-card glass-card">
+            <!-- Glowing Holographic Radar Animation -->
+            <div class="scan-radar-wrapper">
+              <div class="radar-circle rc-1"></div>
+              <div class="radar-circle rc-2"></div>
+              <div class="radar-circle rc-3"></div>
+              <div class="radar-scanner"></div>
+              <div class="radar-ai-core">
+                <i data-lucide="cpu" class="core-icon"></i>
+              </div>
+            </div>
+
+            <h3 class="scan-heading">Neural Acoustic Processing</h3>
+            <p class="scan-subheading">Deconstructing vocal spectrum and speech sentiment...</p>
+
+            <!-- Processing Pipeline Steps -->
+            <div class="scan-steps-list">
+              <div class="scan-step-row active" id="scanStep1">
+                <div class="step-indicator"><i data-lucide="check"></i></div>
+                <div class="step-details">
+                  <span class="step-name">Acoustic Signal Preprocessing</span>
+                  <span class="step-desc">FFT spectrum, Pitch (F0) & dB RMS extraction</span>
+                </div>
+                <div class="step-status-chip">Processing</div>
+              </div>
+
+              <div class="scan-step-row" id="scanStep2">
+                <div class="step-indicator"><i data-lucide="check"></i></div>
+                <div class="step-details">
+                  <span class="step-name">Speech-to-Text Transcription</span>
+                  <span class="step-desc">Web Speech neural acoustic phoneme alignment</span>
+                </div>
+                <div class="step-status-chip">Waiting</div>
+              </div>
+
+              <div class="scan-step-row" id="scanStep3">
+                <div class="step-indicator"><i data-lucide="check"></i></div>
+                <div class="step-details">
+                  <span class="step-name">NLP Sentiment & Valence Analysis</span>
+                  <span class="step-desc">Lexical polarity, emotional density & cadence</span>
+                </div>
+                <div class="step-status-chip">Waiting</div>
+              </div>
+
+              <div class="scan-step-row" id="scanStep4">
+                <div class="step-indicator"><i data-lucide="check"></i></div>
+                <div class="step-details">
+                  <span class="step-name">Emotion Classification</span>
+                  <span class="step-desc">Multi-class Bayesian confidence mapping</span>
+                </div>
+                <div class="step-status-chip">Waiting</div>
+              </div>
+
+              <div class="scan-step-row" id="scanStep5">
+                <div class="step-indicator"><i data-lucide="check"></i></div>
+                <div class="step-details">
+                  <span class="step-name">Curating Harmonic Playlist</span>
+                  <span class="step-desc">BPM, Key signature & Acoustic mood matching</span>
+                </div>
+                <div class="step-status-chip">Waiting</div>
+              </div>
+            </div>
+
+            <!-- Cyber Progress Bar -->
+            <div class="scan-progress-wrapper">
+              <div class="scan-progress-bar">
+                <div class="scan-progress-fill" id="scanProgressFill"></div>
+              </div>
+              <div class="scan-progress-labels">
+                <span>Neural Pipeline</span>
+                <span id="scanProgressPercent">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== MOOD & SPEECH RESULT SECTION ==================== -->
+        <section class="section-container result-section-wrap hide" id="result-section">
+          <div class="section-header">
+            <div class="section-tag">
+              <i data-lucide="sparkles" class="tag-icon"></i>
+              <span>Analysis Complete</span>
+            </div>
+            <h2 class="section-title">Detected Mood & Voice Insights</h2>
+            <p class="section-desc">
+              Here is the multidimensional breakdown of your emotional state, speech tempo, voice acoustics, and reasoning.
+            </p>
+          </div>
+
+          <div class="results-grid">
+            <!-- Left Card: Primary Mood & Circular Confidence Meter -->
+            <div class="primary-mood-card glass-card">
+              <div class="mood-card-header">
+                <span class="card-eyebrow">YOUR CURRENT MOOD</span>
+                <button class="btn-icon-ghost" id="shareResultBtn" title="Share Analysis">
+                  <i data-lucide="share-2"></i>
+                </button>
+              </div>
+
+              <div class="primary-mood-display">
+                <div class="mood-emoji-bubble" id="resultMoodEmoji">😊</div>
+                <div class="mood-title-wrap">
+                  <h3 class="result-mood-name gradient-text" id="resultMoodName">HAPPY</h3>
+                  <p class="result-mood-tagline" id="resultMoodTagline">High Positive Valence • Radiant Energy</p>
+                </div>
+              </div>
+
+              <!-- Circular Confidence Meter -->
+              <div class="confidence-circle-wrap">
+                <svg class="confidence-svg" viewBox="0 0 160 160">
+                  <circle class="circle-bg" cx="80" cy="80" r="68"></circle>
+                  <circle class="circle-progress" id="confidenceCircleProgress" cx="80" cy="80" r="68"></circle>
+                </svg>
+                <div class="confidence-circle-content">
+                  <span class="confidence-val" id="confidenceVal">87%</span>
+                  <span class="confidence-lbl">AI Confidence</span>
+                </div>
+              </div>
+
+              <!-- Emotion Probability Breakdown Progress Bars -->
+              <div class="emotions-breakdown-list" id="emotionsBreakdownList">
+                <!-- Dynamically populated via JS -->
+              </div>
+            </div>
+
+            <!-- Right Card: Speech Insights & Converted Transcript -->
+            <div class="speech-insights-card glass-card">
+              <div class="insights-header">
+                <span class="card-eyebrow">SPEECH & PROSODY INSIGHTS</span>
+                <span class="badge-tag" id="speechSourceTag">Microphone Input</span>
+              </div>
+
+              <!-- Metrics 4-Grid -->
+              <div class="insights-metrics-grid">
+                <div class="metric-box glass-pill">
+                  <div class="metric-icon-wrap"><i data-lucide="activity"></i></div>
+                  <div class="metric-meta">
+                    <span class="metric-label">Speech Speed</span>
+                    <span class="metric-value" id="insightSpeedVal">142 wpm</span>
+                    <span class="metric-sub" id="insightSpeedSub">Optimal Cadence</span>
+                  </div>
+                </div>
+
+                <div class="metric-box glass-pill">
+                  <div class="metric-icon-wrap"><i data-lucide="zap"></i></div>
+                  <div class="metric-meta">
+                    <span class="metric-label">Voice Energy</span>
+                    <span class="metric-value" id="insightEnergyVal">78%</span>
+                    <span class="metric-sub" id="insightEnergySub">Dynamic Range</span>
+                  </div>
+                </div>
+
+                <div class="metric-box glass-pill">
+                  <div class="metric-icon-wrap"><i data-lucide="pause-circle"></i></div>
+                  <div class="metric-meta">
+                    <span class="metric-label">Pause Frequency</span>
+                    <span class="metric-value" id="insightPauseVal">Low</span>
+                    <span class="metric-sub" id="insightPauseSub">Fluent Stream</span>
+                  </div>
+                </div>
+
+                <div class="metric-box glass-pill">
+                  <div class="metric-icon-wrap"><i data-lucide="heart"></i></div>
+                  <div class="metric-meta">
+                    <span class="metric-label">Sentiment Polarity</span>
+                    <span class="metric-value text-neon-green" id="insightSentimentVal">+0.84</span>
+                    <span class="metric-sub" id="insightSentimentSub">Positive Tone</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detected Speech Transcript Card -->
+              <div class="speech-transcript-box glass-card">
+                <div class="transcript-header">
+                  <div class="transcript-title-wrap">
+                    <i data-lucide="message-square" class="icon-xs text-neon-cyan"></i>
+                    <span>Converted Speech Transcript</span>
+                  </div>
+                  <button class="btn-copy-transcript glass-btn" id="copyTranscriptBtn" title="Copy Text">
+                    <i data-lucide="copy"></i>
+                    <span>Copy</span>
+                  </button>
+                </div>
+                <blockquote class="transcript-text" id="detectedTranscriptText">
+                  "Today was really amazing. I feel so happy and excited about everything we accomplished together!"
+                </blockquote>
+                <!-- Highlighted Emotional Keyword Chips -->
+                <div class="keyword-tags-row" id="keywordTagsRow">
+                  <span class="keyword-label">Key Tokens:</span>
+                  <span class="token-pill happy">amazing</span>
+                  <span class="token-pill happy">happy</span>
+                  <span class="token-pill happy">excited</span>
+                  <span class="token-pill happy">accomplished</span>
+                </div>
+              </div>
+
+              <!-- AI Explainability Cards -->
+              <div class="ai-rationale-grid">
+                <div class="rationale-card">
+                  <div class="rationale-title">
+                    <i data-lucide="bot" class="icon-xs text-neon-purple"></i>
+                    <span>Why AI detected this mood?</span>
+                  </div>
+                  <p class="rationale-text" id="aiDetectionReasoning">
+                    Your speech features high pitch variability, rapid word pacing (142 wpm), and multiple strongly positive semantic triggers. Acoustic prosody indicates elevated energetic happiness.
+                  </p>
+                </div>
+
+                <div class="rationale-card">
+                  <div class="rationale-title">
+                    <i data-lucide="disc" class="icon-xs text-neon-pink"></i>
+                    <span>Why these songs?</span>
+                  </div>
+                  <p class="rationale-text" id="aiMusicReasoning">
+                    We synchronized your playlist with 120-130 BPM upbeat tempos, major harmonic chord structures, and uplifting vocal energy to amplify your positive mood state.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== RECOMMENDATIONS SECTION ==================== -->
+        <section class="section-container" id="recommendations-section">
+          <div class="section-header-row">
+            <div>
+              <div class="section-tag">
+                <i data-lucide="music" class="tag-icon"></i>
+                <span id="recSectionMoodTag">Curated for Happy Mood</span>
+              </div>
+              <h2 class="section-title">Recommended For You</h2>
+              <p class="section-desc">
+                High-fidelity sound matching tailored to your detected emotional resonance.
+              </p>
+            </div>
+
+            <!-- Action Buttons for Playlist -->
+            <div class="rec-actions-group">
+              <button class="btn-primary glow-button" id="playAllBtn">
+                <i data-lucide="play"></i>
+                <span>Play All</span>
+              </button>
+              <button class="btn-secondary glass-btn" id="createPlaylistBtn">
+                <i data-lucide="list-plus"></i>
+                <span>Create Playlist</span>
+              </button>
+              <button class="btn-ghost glass-btn" id="filterGenreBtn">
+                <i data-lucide="filter"></i>
+                <span>Filter</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Mood Filter Tabs for Instant Preview -->
+          <div class="music-mood-filter-tabs" id="musicMoodFilterTabs">
+            <button class="filter-mood-pill active" data-mood="HAPPY">😊 Happy (Pop/Dance)</button>
+            <button class="filter-mood-pill" data-mood="SAD">😢 Sad (Acoustic/Soul)</button>
+            <button class="filter-mood-pill" data-mood="CALM">😌 Calm (Lo-fi/Peaceful)</button>
+            <button class="filter-mood-pill" data-mood="ENERGETIC">⚡ Energetic (EDM/Rock)</button>
+            <button class="filter-mood-pill" data-mood="STRESSED">🧘 Stressed (Ambient/Zen)</button>
+            <button class="filter-mood-pill" data-mood="ANGRY">😡 Angry (Metal/Cathartic)</button>
+            <button class="filter-mood-pill" data-mood="ROMANTIC">💕 Romantic (R&B/Jazz)</button>
+          </div>
+
+          <!-- Dynamic Song Cards Grid -->
+          <div class="songs-grid" id="songsGrid">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </section>
+
+        <!-- ==================== TEXT SENTIMENT ANALYSIS SECTION ==================== -->
+        <section class="section-container" id="text-section">
+          <div class="section-header">
+            <div class="section-tag">
+              <i data-lucide="file-text" class="tag-icon"></i>
+              <span>NLP Text Analysis Engine</span>
+            </div>
+            <h2 class="section-title">Analyze Your Text Mood</h2>
+            <p class="section-desc">
+              Don't want to use your microphone right now? Type your current thoughts, journal entry, or feelings below for instant sentiment extraction.
+            </p>
+          </div>
+
+          <div class="text-analysis-card glass-card">
+            <div class="text-card-layout">
+              <div class="text-input-zone">
+                <label for="textSentimentInput" class="text-input-label">Type something about how you're feeling...</label>
+                <div class="textarea-wrapper">
+                  <textarea id="textSentimentInput" rows="5" placeholder="e.g. I had a wonderful day exploring the city with my closest friends and everything feels so uplifting!"></textarea>
+                  <div class="textarea-footer">
+                    <span class="char-count" id="charCount">0 characters</span>
+                    <button class="btn-clear-text" id="clearTextBtn" title="Clear text">Clear</button>
+                  </div>
+                </div>
+
+                <!-- Text Sample Quick Presets -->
+                <div class="text-quick-presets">
+                  <span class="preset-label">Quick sample inputs:</span>
+                  <div class="preset-pills-row">
+                    <button class="preset-btn" data-text="I had a wonderful day with my friends and I feel really happy and grateful!">🎉 Happy & Grateful</button>
+                    <button class="preset-btn" data-text="I'm feeling so lonely and down today. Nothing seems to be going right and I'm heartbroken.">😢 Lonely & Down</button>
+                    <button class="preset-btn" data-text="Sitting quietly in my garden listening to birds chirp. Total tranquility and calm.">🍃 Tranquil & Calm</button>
+                    <button class="preset-btn" data-text="Huge deadline in three hours and our server just crashed! Extremely stressed and anxious.">⚡ High Stress & Pressure</button>
+                    <button class="preset-btn" data-text="I cannot believe how rude that person was! I am so angry and irritated right now.">🔥 Annoyed & Angry</button>
+                  </div>
+                </div>
+
+                <div class="text-submit-row">
+                  <button class="btn-primary glow-button" id="analyzeTextMoodBtn">
+                    <i data-lucide="sparkles"></i>
+                    <span>Analyze Text Mood & Recommend Music</span>
+                    <div class="btn-glow-layer"></div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Live NLP Sentiment Preview Card -->
+              <div class="text-preview-panel glass-card">
+                <div class="panel-header">
+                  <i data-lucide="cpu" class="icon-xs text-neon-cyan"></i>
+                  <span>Live Lexical Preview</span>
+                </div>
+                <div class="live-sentiment-meter">
+                  <div class="meter-emoji" id="textLiveEmoji">😊</div>
+                  <div class="meter-details">
+                    <span class="meter-mood-title" id="textLiveMood">HAPPY</span>
+                    <span class="meter-conf" id="textLiveConfidence">Estimated Confidence: 91%</span>
+                  </div>
+                </div>
+                <div class="lexical-density-bar">
+                  <div class="density-fill" id="textDensityFill" style="width: 88%;"></div>
+                </div>
+                <div class="lexical-tokens-box" id="textExtractedTokens">
+                  <span class="token-lbl">Detected Sentiment Signals:</span>
+                  <div class="token-chips" id="textTokensList">
+                    <span class="token-chip happy">wonderful</span>
+                    <span class="token-chip happy">happy</span>
+                    <span class="token-chip happy">friends</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== MOOD ANALYTICS DASHBOARD ==================== -->
+        <section class="section-container" id="analytics-section">
+          <div class="section-header-row">
+            <div>
+              <div class="section-tag">
+                <i data-lucide="bar-chart-3" class="tag-icon"></i>
+                <span>Data Intelligence</span>
+              </div>
+              <h2 class="section-title">Mood Analytics & Trends</h2>
+              <p class="section-desc">
+                Longitudinal telemetry tracking your emotional states, vocal energy dynamics, and recommendation history.
+              </p>
+            </div>
+
+            <!-- Timeframe Filter -->
+            <div class="analytics-time-filter glass-pill">
+              <button class="time-filter-btn active" data-period="7d">Last 7 Days</button>
+              <button class="time-filter-btn" data-period="30d">30 Days</button>
+              <button class="time-filter-btn" data-period="all">All Time</button>
+            </div>
+          </div>
+
+          <!-- KPI Summary Cards 4-Col Grid -->
+          <div class="analytics-kpi-grid">
+            <div class="kpi-card glass-card">
+              <div class="kpi-icon-wrap happy">
+                <i data-lucide="smile"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Today's Mood</span>
+                <h3 class="kpi-value" id="kpiTodayMood">😊 Happy</h3>
+                <span class="kpi-delta positive">
+                  <i data-lucide="trending-up"></i>
+                  <span>Dominant (68%)</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="kpi-card glass-card">
+              <div class="kpi-icon-wrap voice">
+                <i data-lucide="mic"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Voice Analyses</span>
+                <h3 class="kpi-value" id="kpiTotalAnalyses">24</h3>
+                <span class="kpi-delta positive">
+                  <i data-lucide="check-circle-2"></i>
+                  <span>+4 sessions today</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="kpi-card glass-card">
+              <div class="kpi-icon-wrap most-detected">
+                <i data-lucide="heart"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Most Detected Mood</span>
+                <h3 class="kpi-value" id="kpiMostDetected">😊 Happy</h3>
+                <span class="kpi-delta neutral">
+                  <i data-lucide="pie-chart"></i>
+                  <span>42% of all sessions</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="kpi-card glass-card">
+              <div class="kpi-icon-wrap music">
+                <i data-lucide="music-2"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Songs Recommended</span>
+                <h3 class="kpi-value" id="kpiSongsRecommended">86</h3>
+                <span class="kpi-delta positive">
+                  <i data-lucide="headphones"></i>
+                  <span>96% match rating</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts 2-Col Layout -->
+          <div class="charts-grid">
+            <!-- Chart 1: Weekly Mood Trend Line Chart -->
+            <div class="chart-card glass-card">
+              <div class="chart-card-header">
+                <div>
+                  <h3 class="chart-title">Weekly Mood Trajectory</h3>
+                  <span class="chart-subtitle">Daily dominant mood valence (Mon - Sun)</span>
+                </div>
+                <div class="chart-legend-custom">
+                  <span class="dot-legend-happy"></span>
+                  <span>Emotional Positivity</span>
+                </div>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="weeklyMoodChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 2: Mood Distribution Doughnut Chart -->
+            <div class="chart-card glass-card">
+              <div class="chart-card-header">
+                <div>
+                  <h3 class="chart-title">Emotion Distribution Ratio</h3>
+                  <span class="chart-subtitle">Breakdown across 7 neural classifications</span>
+                </div>
+                <i data-lucide="pie-chart" class="icon-sm text-neon-pink"></i>
+              </div>
+              <div class="chart-canvas-wrapper chart-doughnut-wrap">
+                <canvas id="moodDoughnutChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart 3: Acoustic Voice Energy vs Tempo Radar/Bar -->
+          <div class="chart-card glass-card full-width-chart mt-4">
+            <div class="chart-card-header">
+              <div>
+                <h3 class="chart-title">Acoustic Prosody & Energy Index by Mood</h3>
+                <span class="chart-subtitle">Correlating Voice Decibels, Speech Tempo (WPM), and Emotional Arousal</span>
+              </div>
+              <span class="badge-tag">Multi-Vector Analysis</span>
+            </div>
+            <div class="chart-canvas-wrapper" style="height: 260px;">
+              <canvas id="acousticProsodyChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== MOOD HISTORY SECTION ==================== -->
+        <section class="section-container" id="history-section">
+          <div class="section-header-row">
+            <div>
+              <div class="section-tag">
+                <i data-lucide="clock" class="tag-icon"></i>
+                <span>Historical Sessions</span>
+              </div>
+              <h2 class="section-title">Mood Analysis Log</h2>
+              <p class="section-desc">
+                Review past voice recordings, detected sentiments, and recommended playlists.
+              </p>
+            </div>
+
+            <div class="history-actions-row">
+              <div class="history-search-wrap glass-pill">
+                <i data-lucide="search" class="icon-xs"></i>
+                <input type="text" id="historySearchInput" placeholder="Filter log entries...">
+              </div>
+              <select id="historyMoodFilterSelect" class="history-filter-select glass-pill">
+                <option value="ALL">All Moods</option>
+                <option value="HAPPY">Happy</option>
+                <option value="CALM">Calm</option>
+                <option value="SAD">Sad</option>
+                <option value="ENERGETIC">Energetic</option>
+                <option value="STRESSED">Stressed</option>
+                <option value="ANGRY">Angry</option>
+                <option value="ROMANTIC">Romantic</option>
+              </select>
+              <button class="btn-ghost glass-btn" id="clearHistoryBtn" title="Clear all history">
+                <i data-lucide="trash-2"></i>
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- History Table Card -->
+          <div class="history-table-card glass-card">
+            <div class="table-responsive">
+              <table class="mood-history-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Detected Mood</th>
+                    <th>Confidence</th>
+                    <th>Input Source / Speech</th>
+                    <th>Songs Rec</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                  <!-- Dynamically populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== SETTINGS SECTION ==================== -->
+        <section class="section-container" id="settings-section">
+          <div class="section-header">
+            <div class="section-tag">
+              <i data-lucide="sliders" class="tag-icon"></i>
+              <span>System Configuration</span>
+            </div>
+            <h2 class="section-title">Engine Preferences & AI Controls</h2>
+            <p class="section-desc">
+              Adjust speech recognition sensitivity, visualizer themes, audio synthesis, and interface options.
+            </p>
+          </div>
+
+          <div class="settings-grid">
+            <!-- Settings Column 1: AI & Audio Engine -->
+            <div class="settings-card glass-card">
+              <h3 class="settings-card-title">
+                <i data-lucide="brain-circuit" class="icon-xs text-neon-purple"></i>
+                <span>AI Emotion Engine Parameters</span>
+              </h3>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <span class="setting-label">Emotion Detection Sensitivity</span>
+                  <span class="setting-desc">Adjust the Bayesian threshold for confidence scoring</span>
+                </div>
+                <select class="setting-select glass-pill" id="settingSensitivity">
+                  <option value="high">Expressive (High Sensitivity)</option>
+                  <option value="balanced" selected>Balanced (Recommended)</option>
+                  <option value="strict">Strict (High Confidence Only)</option>
+                </select>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <span class="setting-label">Real-time Web Audio Synthesizer</span>
+                  <span class="setting-desc">Procedurally generates ambient preview sounds matching your mood</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingSynthSound" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <span class="setting-label">Speech Prosody Acoustic Modeling</span>
+                  <span class="setting-desc">Include Pitch (F0) & dB RMS in sentiment calculation</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingProsody" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Settings Column 2: UI & Theme Customization -->
+            <div class="settings-card glass-card">
+              <h3 class="settings-card-title">
+                <i data-lucide="palette" class="icon-xs text-neon-pink"></i>
+                <span>Visuals & Themes</span>
+              </h3>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <span class="setting-label">Visualizer Theme</span>
+                  <span class="setting-desc">Color palette for waveforms and AI Orb</span>
+                </div>
+                <select class="setting-select glass-pill" id="settingVisualTheme">
+                  <option value="cyberpunk" selected>Cyberpunk Neon (Purple/Pink/Cyan)</option>
+                  <option value="synthwave">Synthwave Sunset (Orange/Magenta)</option>
+                  <option value="matrix">Emerald Neural (Green/Teal)</option>
+                  <option value="deepspace">Deep Space (Indigo/Electric Blue)</option>
+                </select>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <span class="setting-label">Floating Cosmic Particles</span>
+                  <span class="setting-desc">Interactive canvas background particle constellation</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingParticles" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <span class="setting-label">Reset Demo Data</span>
+                  <span class="setting-desc">Restore factory sample history and default KPI metrics</span>
+                </div>
+                <button class="btn-ghost glass-btn" id="resetDemoDataBtn">
+                  <i data-lucide="rotate-ccw"></i>
+                  <span>Reset Data</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== SAFETY & PRIVACY CARD ==================== -->
+        <section class="privacy-section">
+          <div class="privacy-card glass-card">
+            <div class="privacy-icon-box">
+              <i data-lucide="shield-check" class="shield-icon"></i>
+            </div>
+            <div class="privacy-content">
+              <h3 class="privacy-title">🔒 Your Voice, Your Privacy</h3>
+              <p class="privacy-text">
+                All voice recordings and transcripts are processed directly in-browser using client-side Web Audio and Web Speech APIs. No private biometric or speech data is uploaded to remote servers.
+              </p>
+              <div class="privacy-chips">
+                <span class="privacy-chip"><i data-lucide="check" class="icon-xxs"></i> Client-Side Processing</span>
+                <span class="privacy-chip"><i data-lucide="check" class="icon-xxs"></i> Zero Data Retention</span>
+                <span class="privacy-chip"><i data-lucide="check" class="icon-xxs"></i> Academic Project Safe</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== FOOTER ==================== -->
+        <footer class="app-footer">
+          <div class="footer-grid">
+            <div class="footer-brand">
+              <div class="footer-logo">
+                <i data-lucide="headphones" class="icon-sm text-neon-purple"></i>
+                <span class="footer-name">MoodTune<span class="gradient-text">.AI</span></span>
+              </div>
+              <p class="footer-tagline">
+                "Speak your mood. Let AI choose your music."
+              </p>
+              <p class="footer-subtext">
+                Built for <strong>Text & Speech Analysis</strong> Academic Presentation • B.Tech / M.Tech AI Project
+              </p>
+            </div>
+
+            <div class="footer-links-col">
+              <h4>System Modules</h4>
+              <ul>
+                <li><a href="#voice-section">Speech Emotion Recognition</a></li>
+                <li><a href="#text-section">NLP Sentiment Analyzer</a></li>
+                <li><a href="#recommendations-section">Harmonic Music Engine</a></li>
+                <li><a href="#analytics-section">Acoustic Telemetry</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-links-col">
+              <h4>Technologies</h4>
+              <div class="tech-badge-cloud">
+                <span class="tech-badge">Web Speech API</span>
+                <span class="tech-badge">Web Audio API</span>
+                <span class="tech-badge">Chart.js</span>
+                <span class="tech-badge">Vanilla CSS3</span>
+                <span class="tech-badge">HTML5 Canvas</span>
+                <span class="tech-badge">Lucide Icons</span>
+              </div>
+            </div>
+
+            <div class="footer-links-col">
+              <h4>Project Presentation</h4>
+              <p class="footer-contact-text">
+                Presented by: <strong>Alex Rivera & Team</strong><br>
+                Department of Computer Science & AI
+              </p>
+              <div class="footer-social-icons">
+                <a href="#" class="social-btn glass-btn" title="GitHub"><i data-lucide="github"></i></a>
+                <a href="#" class="social-btn glass-btn" title="LinkedIn"><i data-lucide="linkedin"></i></a>
+                <a href="#" class="social-btn glass-btn" title="Documentation"><i data-lucide="book-open"></i></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-bottom">
+            <span>© 2026 MoodTune AI • Academic Project Showcase. All rights reserved.</span>
+            <span class="badge-tag">Version 2.4.0 • Academic Build</span>
+          </div>
+        </footer>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== FIXED BOTTOM MUSIC PLAYER ==================== -->
+  <div class="floating-music-player glass-card" id="globalMusicPlayer">
+    <div class="player-left">
+      <div class="player-cover-wrap">
+        <div class="player-cover-art" id="playerCoverArt">
+          <i data-lucide="disc" id="playerDiscIcon"></i>
+        </div>
+        <div class="player-playing-waves hide" id="playerPlayingWaves">
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="player-track-info">
+        <h4 class="player-song-title" id="playerSongTitle">Happy</h4>
+        <span class="player-song-artist" id="playerSongArtist">Pharrell Williams</span>
+        <span class="player-song-mood-badge" id="playerMoodBadge">😊 Happy</span>
+      </div>
+      <button class="player-like-btn" id="playerLikeBtn" title="Like Song">
+        <i data-lucide="heart" class="icon-sm"></i>
+      </button>
+    </div>
+
+    <div class="player-center">
+      <div class="player-controls">
+        <button class="player-btn-sub" id="playerShuffleBtn" title="Shuffle">
+          <i data-lucide="shuffle"></i>
+        </button>
+        <button class="player-btn-sub" id="playerPrevBtn" title="Previous">
+          <i data-lucide="skip-back"></i>
+        </button>
+        <button class="player-btn-main glow-button" id="playerPlayPauseBtn" title="Play/Pause">
+          <i data-lucide="play" id="playerMainPlayIcon"></i>
+          <i data-lucide="pause" id="playerMainPauseIcon" class="hide"></i>
+        </button>
+        <button class="player-btn-sub" id="playerNextBtn" title="Next">
+          <i data-lucide="skip-forward"></i>
+        </button>
+        <button class="player-btn-sub" id="playerRepeatBtn" title="Repeat">
+          <i data-lucide="repeat"></i>
+        </button>
+      </div>
+
+      <div class="player-progress-row">
+        <span class="player-time" id="playerCurrentTime">0:00</span>
+        <div class="player-seekbar-wrap" id="playerSeekbarWrap">
+          <div class="player-seekbar-fill" id="playerSeekbarFill"></div>
+          <div class="player-seekbar-thumb" id="playerSeekbarThumb"></div>
+        </div>
+        <span class="player-time" id="playerTotalTime">3:53</span>
+      </div>
+    </div>
+
+    <div class="player-right">
+      <button class="player-btn-sub" id="playerMuteBtn" title="Mute/Unmute">
+        <i data-lucide="volume-2" id="playerVolumeIcon"></i>
+      </button>
+      <div class="player-volume-slider-wrap">
+        <input type="range" min="0" max="100" value="80" class="player-vol-range" id="playerVolumeRange">
+      </div>
+      <button class="player-btn-sub" id="playerQueueBtn" title="Queue List">
+        <i data-lucide="list-music"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CREATE PLAYLIST ==================== -->
+  <div class="app-modal" id="createPlaylistModal" aria-hidden="true">
+    <div class="modal-card glass-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="folder-plus" class="icon-sm text-neon-purple"></i>
+          <h3>Export & Save Mood Playlist</h3>
+        </div>
+        <button class="modal-close-btn" id="closePlaylistModalBtn"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="playlistNameInput">Playlist Name</label>
+          <input type="text" id="playlistNameInput" class="glass-pill" value="MoodTune AI • Radiant Happy Vibes">
+        </div>
+        <div class="form-group">
+          <label for="playlistDescInput">Description</label>
+          <textarea id="playlistDescInput" class="glass-pill" rows="2">Synthesized based on real-time acoustic speech emotion detection (87% Happy confidence).</textarea>
+        </div>
+        <div class="modal-tracks-preview" id="modalTracksPreview">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost glass-btn" id="cancelPlaylistBtn">Cancel</button>
+        <button class="btn-secondary glass-btn" id="exportSpotifyBtn">
+          <i data-lucide="share"></i>
+          <span>Copy Tracklist</span>
+        </button>
+        <button class="btn-primary glow-button" id="savePlaylistActionBtn">
+          <i data-lucide="check"></i>
+          <span>Save to Library</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Custom App Script -->
+  <script src="script.js"></script>
+</body>
+</html>
